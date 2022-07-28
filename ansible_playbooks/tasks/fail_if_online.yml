@@ -1,0 +1,9 @@
+- name: Checking if this IP is being used.
+  ansible.builtin.shell:
+    cmd: "ping -c 5 -4 -q {{ custom_static_ip | regex_replace('/24') }}"
+  ignore_errors: "yes"
+  register: "ping_result"
+  failed_when: "ping_result['rc'] == 0"
+- ansible.builtin.fail:
+    msg: "{{ custom_static_ip }} is already live on the network."
+  when: "ping_result['rc'] == 0"

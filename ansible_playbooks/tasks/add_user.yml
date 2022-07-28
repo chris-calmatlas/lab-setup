@@ -1,0 +1,7 @@
+- name: Adding a user
+  ansible.builtin.user:
+    name: "{{ add_user_name }}"
+    generate_ssh_key: "yes"
+    force: true
+- ansible.builtin.debug:
+    msg: "{{ add_user_name }} added"

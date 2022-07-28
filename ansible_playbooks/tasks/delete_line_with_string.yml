@@ -1,0 +1,6 @@
+- name: Deleting a line from a file
+  ansible.builtin.lineinfile:
+    path: "{{ delete_file }}"
+    state: "absent"
+    search_string: "{{ delete_string }}"
+

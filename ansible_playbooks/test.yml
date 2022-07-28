@@ -1,0 +1,6 @@
+- name: Disable the provision IP address
+  hosts: "{{ custom_new_host }}"
+  tasks:
+    - ansible.builtin.debug:
+        msg: "{{ ansible_facts[item]['ipv4']['address'] }}"
+      loop: "{{ ansible_interfaces }}"

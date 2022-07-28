@@ -1,0 +1,31 @@
+- name: Set ethernet adapter to static IP
+  community.general.nmcli:
+    type: "ethernet"
+    conn_name: "{{ custom_if_name }}"
+    ifname: "{{ custom_if_name }}"
+    ip4: "{{ custom_static_ip }}"
+    gw4: "{{custom_static_gateway }}"
+    dns4: "{{ custom_static_dns1 }}"
+    state: "present"
+- name: ping the dns server
+  ansible.builtin.shell:
+    cmd: "ping -c 5 -4 -q {{ custom_static_dns1 }}"
+  ignore_errors: "yes"
+  register: "ping_result"
+  failed_when: false
+- name: Update ansible_facts
+  ansible.utils.update_fact:
+    updates:
+    - path: "ansible_facts[{{ custom_if_name }}]"
+      value:
+        ipv4:
+          address: "{{ custom_static_ip|regex_replace('/24') }}"
+  when: "ping_result['rc'] == 0"
+- name: Unset ethernet adapter if ping failed
+  community.general.nmcli:
+    conn_name: "{{ custom_if_name }}"
+    state: "absent"
+  when: "ping_result['rc'] != 0"
+  ignore_errors: "yes"
+- ansible.builtin.debug:
+    msg: "{{ ansible_facts[custom_if_name] }}"

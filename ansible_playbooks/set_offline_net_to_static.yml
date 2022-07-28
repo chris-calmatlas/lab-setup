@@ -1,0 +1,24 @@
+- name: Checking for duplicate IPs
+  hosts: "localhost"
+  any_errors_fatal: "yes"
+  tasks:
+    - import_tasks: "{{ custom_task_path }}/fail_if_online.yml"
+      vars:
+        custom_host_to_ping: "{{ custom_static_ip }}"
+- name: Set each ethernet adapter and test connection until success
+  hosts: "{{ custom_host }}"
+  become: true
+  become_method: "sudo"
+  tasks:
+    - name: Unset this IP from other adapters.
+      community.general.nmcli:
+        conn_name: "{{ item }}"
+        state: "absent"
+      loop: "{{ ansible_interfaces }}"
+      when: "ansible_facts[item]['ipv4']['address']|default('') == custom_static_ip|regex_replace('/24')"
+    - include_tasks: "{{ custom_task_path }}/set_static_ip.yml"
+      vars:
+        custom_if_name: "{{ item }}"
+      register: "result"
+      loop: "{{ ansible_interfaces }}"
+      when: "(ansible_facts[item]['ipv4']['address']|default('') == '' or ansible_facts[item]['ipv4']['address']|default('') == custom_static_ip|regex_replace('/24')) and result['changed']|default(false) == false"

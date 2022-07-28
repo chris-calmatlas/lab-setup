@@ -1,0 +1,8 @@
+- name: Deleting a user 
+  ansible.builtin.user:
+    name: "{{ remove_user_name }}"
+    state: "absent"
+    remove: "yes"
+    force: true
+- ansible.builtin.debug:
+    msg: "{{ remove_user_name }} removed"

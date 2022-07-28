@@ -1,0 +1,17 @@
+#General
+custom_task_path: "../tasks"
+custom_files_path: "../files"
+
+#Provision ansible account
+custom_sshd_config: "sshd_config.default"
+custom_provision_ip: "192.168.3.3"
+custom_provision_user: "provision"
+custom_old_host: "freshInstall"
+custom_new_host: "testServer"
+
+#Network setup
+custom_host: "{{ custom_old_host }}" 
+custom_static_ip: "10.7.7.99/24"
+custom_static_dns1: "10.7.7.254"
+custom_static_gateway: "10.7.7.254"
+custom_fqdn: "test.home.calmatlas.com"

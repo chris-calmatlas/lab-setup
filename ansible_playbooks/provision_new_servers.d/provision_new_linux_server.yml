@@ -1,0 +1,84 @@
+- name: Preparing localhost for run
+  hosts: "localhost"
+  any_errors_fatal: "yes"
+  tasks:
+    - ansible.builtin.debug:
+        msg: "Ping {{ custom_static_ip }} and fail if we get a response"
+    - import_tasks: "{{ custom_task_path }}/fail_if_online.yml"
+      vars:
+        custom_host_to_ping: "{{ custom_static_ip }}"
+    - ansible.builtin.debug:
+        msg: "Remove {{ custom_provision_ip }} from known_hosts file because it probably changed"
+    - import_tasks: "{{ custom_task_path }}/delete_line_with_string.yml"
+      vars:
+        delete_string: "{{ custom_provision_ip }}" 
+        delete_file: "/home/ansible/.ssh/known_hosts"
+    - ansible.builtin.debug:
+        msg: "Add new { custom_provision_ip }} into the known_hosts file"
+    - ansible.builtin.shell:
+        cmd: "ssh-keyscan -H {{ custom_provision_ip }} >> /home/ansible/.ssh/known_hosts"
+- name: Create ansible user on remote host
+  hosts: "{{ custom_old_host }}"
+  remote_user: "{{ custom_provision_user }}"
+  gather_facts: "no"
+  become: true
+  become_method: "sudo"
+  vars:
+    ansible_ssh_pass: "{{ vault_provision_pass }}"
+    ansible_become_pass: "{{ vault_provision_pass }}"
+  tasks:
+    - import_tasks: "{{ custom_task_path }}/add_user.yml"
+      vars:
+        add_user_name: "ansible"
+    - name: Send ansible's public key
+      ansible.posix.authorized_key:
+        user: "ansible"
+        state: "present"
+        key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+    - name: Add ansible to sudoer's file
+      community.general.sudoers:
+        name: "ansible" 
+        user: "ansible"
+        commands: "ALL"
+        nopassword: true
+- name: Connect with ansible account and harden
+  hosts: "{{ custom_old_host }}"
+  gather_facts: "no"
+  become: true
+  become_method: "sudo"
+  tasks:
+    - import_tasks: "{{ custom_task_path }}/remove_user.yml"
+      vars:
+        remove_user_name: "{{ custom_provision_user }}"
+    - import_tasks: "{{ custom_task_path }}/lock_password.yml"
+      vars:
+        lock_password_name: "root"
+    - name: Send a new sshd_config
+      ansible.builtin.copy:
+        src: "{{ custom_files_path }}/{{ custom_sshd_config }}"
+        dest: "/etc/ssh/sshd_config"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        backup: "yes"
+- name: Configure Network
+  import_playbook: "set_offline_net_to_static.yml"
+- name: Connect with new IP and set hostname
+  hosts: "{{ custom_new_host }}"
+  become: true
+  become_method: "sudo"
+  tasks:
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ custom_fqdn }}"
+        use: "systemd"
+    - name: Disable provision IP
+      community.general.nmcli:
+        conn_name: "{{ item }}"
+        autoconnect: "no"
+        state: "present"
+      loop: "{{ ansible_interfaces }}"
+      when: "ansible_facts[item]['ipv4']['address']|default('') == custom_provision_ip"
+    - name: reboot
+      ansible.builtin.reboot:
+
