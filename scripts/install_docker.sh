@@ -1,5 +1,5 @@
 #instructions from https://www.tecmint.com/install-docker-in-rocky-linux-and-almalinux/
-$USER="ansible"
+USER="ansible"
 
 #"On your terminal, run the following command to add the Docker repository"
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
