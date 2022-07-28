@@ -7,7 +7,7 @@ sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/dock
 
 #"we are going to install the Docker community edition which is freely available for download and use. But first, update the packages."
 sudo dnf update -y
-sudo dnf install -y docker-ce docker-ce-cli containerd.io
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 docker --version
 
 #Start and Enable Docker
