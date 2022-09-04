@@ -20,7 +20,11 @@ sudo dnf install ipa-server ipa-server-dns -y
 
 #"run the ipa-server-install command below to start configuring the FreeIPA server"
 #"The FreeIPA server will automatically detect the server FQDN and use it as the default server host name. Press ENTER to confirm and continue."
-sudo ipa-server-install --setup-dns --allow-zone-overlap
+
+#add --external-ca per manpage. I have a pki already setup and need to make this a subca. 
+#additionally systutorials.com/docs/linux/man/1-ipa-server-install/ says --allow-zone-overlap is bad idea. removing it. 
+#Finally setup-dns requires --forward option or --no-forwarders at linux.die.net/man/1/ipa-server-install
+sudo ipa-server-install --setup-dns --external-ca --forwarder=10.7.6.6
 
 #accept the defaults and type yes at the "Continue to configure the system with these values?"
 
