@@ -2,9 +2,9 @@
 #pre-reqs: Rocky LInux 8+ and non-root user with sudo
 
 #Variables
-HOST="ipa"
-DOMAIN="ipa.calmatlas.com"
-IP="10.7.6.237"
+HOST="ipa01"
+DOMAIN="nix.calmatlas.com"
+IP="10.7.6.7"
 #"At first, you will be setting up the FQDN"
 sudo hostnamectl set-hostname "$HOST.$DOMAIN"
 echo "$IP	$HOST.$DOMAIN $HOST"| sudo tee -a /etc/hosts
@@ -24,7 +24,7 @@ sudo dnf install ipa-server ipa-server-dns -y
 #add --external-ca per manpage. I have a pki already setup and need to make this a subca. 
 #additionally systutorials.com/docs/linux/man/1-ipa-server-install/ says --allow-zone-overlap is bad idea. removing it. 
 #Finally setup-dns requires --forward option or --no-forwarders at linux.die.net/man/1/ipa-server-install
-sudo ipa-server-install --setup-dns --external-ca --forwarder=10.7.6.6
+sudo ipa-server-install --setup-dns --external-ca --no-forwarders
 
 #accept the defaults and type yes at the "Continue to configure the system with these values?"
 
