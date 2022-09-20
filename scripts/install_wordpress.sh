@@ -28,8 +28,6 @@ sudo mysql --user="root" --execute "CREATE DATABASE wordpressdb"
 
 #We're going to use a random password for the wordpress user for this script
 wp_db_user_pass=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo;)
-echo "Your wordpress db user password is $wp_db_user_pass"
-wp_db_user_pass=""
 
 #Create the user
 sudo mysql --user="root" --database="wordpressdb" --execute="CREATE USER 'wp_user'@'localhost' IDENTIFIED BY '$wp_db_user_pass'"
@@ -109,4 +107,13 @@ sudo restorecon -Rv /etc/httpd/conf.d/
 sudo firewall-cmd --permanent --add-service=http
 sudo firewall-cmd --permanent --add-service=https
 
-#Time for a reboot.
+#reset apache
+sudo systemctl restart httpd
+
+#give username and password
+echo ""
+echo "Navigate to your site in a browser and use the following information
+echo "Wordpress User: wp_user
+echo "Password: $wp_db_user_pass"
+echo ""
+echo "Copy this info. You won't see it again.
