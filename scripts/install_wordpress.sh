@@ -116,4 +116,4 @@ echo "Navigate to your site in a browser and use the following information
 echo "Wordpress User: wp_user
 echo "Password: $wp_db_user_pass"
 echo ""
-echo "Copy this info. You won't see it again.
+echo "Copy this info. You won't see it again."
