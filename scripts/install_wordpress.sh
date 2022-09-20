@@ -113,18 +113,8 @@ sudo firewall-cmd --permanent --add-service=https
 #reset apache
 sudo systemctl restart httpd
 
-#give username and password
-echo ""
-echo "Navigate to your site in a browser and use the following information
-echo "Wordpress User: wp_user
-echo "Password: $wp_db_user_pass"
-echo ""
-echo "Copy this info. You won't see it again."
-
 #we have a working webserver at this point point but can't login to wordpress admin because of cert errors
 #Let's use letsencrypt to get some valid certs.
-
-#if you have your own cert, like from digicert, then you should probably comment out the rest of this script.
 
 #First we need the epel-release repo
 sudo dnf install epel-release -y
@@ -134,3 +124,11 @@ sudo dnf install certbot python3-certbot-apache -y
 
 #retrieve and install the first cert.
 sudo certbot --apache --non-interactive --agree-tos -m $EMAIL --domain $SERVER_FQDN
+
+#give username and password
+echo ""
+echo "Navigate to your site in a browser and use the following information"
+echo "Wordpress User: wp_user"
+echo "Password: $wp_db_user_pass"
+echo ""
+echo "Copy this info. You won't see it again."
