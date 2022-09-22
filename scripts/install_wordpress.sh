@@ -42,18 +42,22 @@ sudo mysql --user="root" --database="wordpressdb" --execute="FLUSH PRIVILEGES"
 #We should improve the security of the mariadb installation, the following command promps the user
 #sudo mysql_secure_installation
 
-#Do the above command  without prompting. Additionally, this is probably not the most modern way to issue these commands. Need to look into updating this.
-wp_db_root_pass=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32})
-sudo sh -c '< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32} > /root/wp_db_root.pass'
-sudo chmod 400 /root/wp_db_root.pass
-wp_db_root=$(sudo cat /root/wp_db_root.pass)
+#Do the above command  without prompting.
+#Save the password to a file
+sudo sh -c 'wp_db_root_pass=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32});
+cat > /root/wp_root.pass << EOF
+[client]
+user=root
+password=$wp_db_root_pass
+EOF'
+sudo chmod 400 /root/wp_root.pass
+
 sudo mysql --user="root" --execute="DELETE FROM mysql.user WHERE User=''"
 sudo mysql --user="root" --execute="DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
 sudo mysql --user="root" --execute="DROP DATABASE IF EXISTS test"
 sudo mysql --user="root" --execute="DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
 sudo mysql --user="root" --execute="ALTER USER 'root'@'localhost' IDENTIFIED BY '$wp_db_root_pass'"
 sudo mysql --user="root" --password="$wp_db_root_pass" --execute="FLUSH PRIVILEGES"
-wp_db_root_pass=""
 
 #Install apache and mod_ssl for 443
 sudo dnf install httpd mod_ssl -y
