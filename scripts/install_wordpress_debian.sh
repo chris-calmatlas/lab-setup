@@ -1,7 +1,7 @@
 #This scripts get's a wordpress site up and running with valid ssl certs at he given FQDN. 
 
-#Incomplete instructions and inspiration found here: https://linuxways.net/red-hat/how-to-install-wordpress-on-rocky-linux-8/
-#This script adapted from Rocky 9 GCP Optimized (Google Cloud Compute e2 medium instance) to Debian 11 bullseye (Google Cloud COmpute e2 medium instance)
+#Incomplete instructions and inspiration found here: https://www.linuxcapable.com/how-to-install-lamp-stack-on-debian-11-bullseye/
+#Debian 11 bullseye (Google Cloud COmpute e2 medium instance)
 
 #variables
 SERVER_FQDN="blog.calmatlas.com"
@@ -10,13 +10,15 @@ SERVER_FQDN="blog.calmatlas.com"
 EMAIL=chris@calmatlas.com
 
 #First update packages
-sudo apt update -y sudo apt upgrade -y
+sudo apt update -y && sudo apt upgrade -y
 
 #The repos included in this image of Debian include php 7.4
 sudo apt install php php-cli php-json php-gd php-mbstring php-xml -y
 
 #Install the webserver
 sudo apt install apache2 -y
+
+#sudo sytemctl enable --now apache2
 
 #install mariadb
 sudo apt install mariadb-server -y
@@ -64,7 +66,7 @@ curl https://wordpress.org/latest.tar.gz --output wordpress.tar.gz
 sudo tar -xf wordpress.tar.gz -C /var/www/html
 
 #give apapche ownership to wordpress
-sudo chown -R apache:apache /var/www/html/wordpress
+sudo chown -R www-data:www-data /var/www/html/wordpress
 
 #set permissions to wordpress
 sudo chmod -R 775 /var/www/html/wordpress
@@ -81,8 +83,8 @@ cat > ./wordpress.conf << EOF
 
   ServerAdmin root@localhost
   DocumentRoot /var/www/html/wordpress
-  ErrorLog /var/log/httpd/wordpress_error.log
-  CustomLog /var/log/httpd/wordpress_access.log common
+  ErrorLog /var/log/apache2/wordpress_error.log
+  CustomLog /var/log/apache2/wordpress_access.log common
 
   <Directory "/var/www/html/wordpress">
     Options Indexes FollowSymLinks
