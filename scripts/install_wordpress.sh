@@ -1,5 +1,9 @@
-#base install instructions here: https://linuxways.net/red-hat/how-to-install-wordpress-on-rocky-linux-8/
-#but these are incomplete for a fresh install of rocky and we'll be using rocky 9 so there will be some differences.
+#This scripts get's a wordpress site up and running with valid ssl certs at he given FQDN. 
+#Some admin screen report config errors and plugin installs don't work.
+
+#Incomplete instructions and inspiration found here: https://linuxways.net/red-hat/how-to-install-wordpress-on-rocky-linux-8/
+#This script orginally written and tested on Rocky 9 GCP Optimized (Google Cloud Compute e2 medium instance)
+#Additionally tested and modifed to work with Rocky 8 GCP Optimzed (Google Cloud Compute e2 medium instance)
 
 #variables
 SERVER_FQDN="blog.calmatlas.com"
@@ -10,15 +14,16 @@ EMAIL=chris@calmatlas.com
 #First update packages
 sudo dnf update -y
 
-#The instructions tell you to "reset the default php 7.2" without describing why or what that is. The default appstream repo on a fresh install of rocky 8 will have php 7.2. At the time of this writing, the latest supported version is 8.
-
-#If we needed the latest and greatest we'd install the remi repo here.
+#The instructions from linuxways.net tell you to "reset the default php 7.2" without describing why or what that is. 
+#The default appstream repo on a fresh install of rocky 8 will have php 7.2. At the time of this writing, the latest supported version is 8.
+#If we needed the latest and greatest we'd install the remi repo here. As of this writing Rocky 9 defaults to PHP 8, while Rocky 8 defaults to PHP 7.2
+#TODO - Check for current version and get it.
 
 #Rocky 9 already has php 8 so let's just install from the appstream repo
 sudo dnf install php php-cli php-json php-gd php-mbstring php-pdo php-xml php-mysqlnd php-pecl-zip -y
 
 #Rocky 9 came with apache installed by default. Let's run it anyway
-#sudo dnf install httpd -y
+sudo dnf install httpd -y
 
 #install mariadb
 sudo dnf install mariadb-server -y
@@ -76,6 +81,9 @@ sudo chown -R apache:apache /var/www/html/wordpress
 
 #set permissions to wordpress
 sudo chmod -R 775 /var/www/html/wordpress
+
+#Rocky 8 on Google Cloud did not come with semanage installed. semanage comes from the policyutils-python-utils package
+sudo dnf install policycoreutils-python-utils -y
 
 #Configure SELinux context
 sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html/wordpress(/.*)?"
