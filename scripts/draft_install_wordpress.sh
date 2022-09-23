@@ -6,10 +6,12 @@
 #Additionally tested and modifed to work with Rocky 8 GCP Optimzed (Google Cloud Compute e2 medium instance)
 
 #variables
-SERVER_FQDN="blog.calmatlas.com"
+SITENAME="blog"
+FQDN="$SITENAME.calmatlas.com"
 #email address needed for letsencrypt, if you comment the last part of this
 #script, then you can also leave this variable blank
 EMAIL=chris@calmatlas.com
+WP_USER=wp_$SITENAME
 
 #First update packages
 sudo dnf update -y
@@ -31,18 +33,21 @@ sudo dnf install mariadb-server -y
 #start and enable the mariadb
 sudo systemctl enable --now mariadb
 
+#Remove the mysql root password first if it exists
+sudo mysql --defaults-file=/root/wp_root.pass --execute="ALTER USER 'root'@'localhost' IDENTIFIED BY ''"
+
 #Create a databsae
-sudo mysql --user="root" --execute "CREATE DATABASE wordpressdb"
+sudo mysql --user="root" --execute "CREATE DATABASE wp_$SITENAME"
 
 #We're going to use a random password for the wordpress user for this script
 wp_db_user_pass=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo;)
 
 #Create the user
-sudo mysql --user="root" --database="wordpressdb" --execute="CREATE USER 'wp_user'@'localhost' IDENTIFIED BY '$wp_db_user_pass'"
+sudo mysql --user="root" --database="wp_$SITENAME" --execute="CREATE USER '$WP_USER'@'localhost' IDENTIFIED BY '$wp_db_user_pass'"
 
 #Grant the user privileges
-sudo mysql --user="root" --database="wordpressdb" --execute="GRANT ALL ON wordpressdb.* TO 'wp_user'@'localhost'"
-sudo mysql --user="root" --database="wordpressdb" --execute="FLUSH PRIVILEGES"
+sudo mysql --user="root" --database="wp_$SITENAME" --execute="GRANT ALL ON wp_$SITENAME.* TO '$WP_USER'@'localhost'"
+sudo mysql --user="root" --database="wp_$SITENAME" --execute="FLUSH PRIVILEGES"
 
 #We should improve the security of the mariadb installation, the following command promps the user
 #sudo mysql_secure_installation
@@ -92,12 +97,12 @@ sudo restorecon -Rv /var/www/html/wordpress
 #Create an apache virtual host file to point to the wordpress install
 cat > ./wordpress.conf << EOF
 <VirtualHost *:80>
-  ServerName $SERVER_FQDN
-  Redirect permanent / https://$SERVER_FQDN/
+  ServerName $FQDN
+  Redirect permanent / https://$FQDN/
 </VirtualHost>
 
 <VirtualHost *:443>
-  ServerName $SERVER_FQDN
+  ServerName $FQDN
 
   ServerAdmin root@localhost
   DocumentRoot /var/www/html/wordpress
@@ -135,12 +140,12 @@ sudo dnf install epel-release -y
 sudo dnf install certbot python3-certbot-apache -y
 
 #retrieve and install the first cert.
-sudo certbot --apache --non-interactive --agree-tos -m $EMAIL --domain $SERVER_FQDN
+sudo certbot --apache --non-interactive --agree-tos -m $EMAIL --domain $FQDN
 
 #give username and password
 echo ""
 echo "Navigate to your site in a browser and use the following information"
-echo "Wordpress User: wp_user"
+echo "Wordpress User: $WP_USER"
 echo "Password: $wp_db_user_pass"
 echo ""
 echo "Copy this info. You won't see it again."
