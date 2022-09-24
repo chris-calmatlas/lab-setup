@@ -28,6 +28,11 @@ sudo dnf install policycoreutils-python-utils -y
 # If we needed the latest and greatest we'd install the remi repo here. As of this writing Rocky 9 defaults to PHP 8, while Rocky 8 defaults to PHP 7.2
 # TODO - Check for current version and get it.
 
+# Rocky 8 defaults to php 7.2 while rocky 9 defualts to php 8.  I won't be suing remi repos
+# Set php 8 as desired version from appstream repo. These commands will fail on fresh install of rocky 9
+sudo dnf module reset php
+sudo dnf module enable php:8.0
+
 # Rocky 9 already has php 8 so let's just install from the appstream repo
 sudo dnf install php php-cli php-json php-gd php-mbstring php-pdo php-xml php-mysqlnd php-pecl-zip -y
 
