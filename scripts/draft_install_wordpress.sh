@@ -7,7 +7,7 @@
 # Pre-req - Server needs internet access
 
 # variables
-SITENAME="blog"
+SITENAME="test"
 FQDN="$SITENAME.calmatlas.com"
 # email address needed for letsencrypt, if you comment the last part of this
 # script, then you can also leave this variable blank
@@ -108,7 +108,7 @@ sudo chmod -R 775 /var/www/html/$SITENAME
 
 #selinux - give httpd rights to html folder
 sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html/$SITENAME(/.*)?"
-sudo restorecon -Rv /var/www/html/%SITENAME
+sudo restorecon -Rv /var/www/html/
 
 # Create an apache virtual host file to point to the wordpress install
 # We're writing it to the home directory of whoever ran the script first
@@ -132,6 +132,9 @@ cat > ~/$SITENAME.conf << EOF
     Require all granted
   </Directory>
 
+  SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+  SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+
 </VirtualHost>
 EOF
 
@@ -141,7 +144,7 @@ sudo mv ~/$SITENAME.conf /etc/httpd/conf.d/
 
 #selinux - label the conf file as a system file.
 sudo semanage fcontext -a -t httpd_config_t -s system_u /etc/httpd/conf.d/$SITENAME.conf
-sudo restorecon /etc/httpd/conf.d/$SITENAME.conf
+sudo restorecon -Fv /etc/httpd/conf.d/$SITENAME.conf
 
 # reset apache
 sudo systemctl restart httpd
@@ -154,17 +157,23 @@ sudo systemctl restart httpd
 sudo firewall-cmd --permanent --add-service=http
 sudo firewall-cmd --permanent --add-service=https
 
-# Since we forced https redirect in our config file wordpress isn't going to work right without a cert
-# Configure letsencrypt for a cert - this requires that your DNS settings are already done. 
+# Additional selinux rules - files relabeled as needed above
+# Without this setting the plugin and theme page does not work
+sudo setsebool -P httpd_can_network_connect 1
 
+# Since we forced https redirect in our config file wordpress isn't going to work right without a cert
+# Create a self-signed cert as a fallback for testing
+sudo openssl req -x509 -keyout /etc/pki/tls/private/localhost.key -out /etc/pki/tls/certs/localhost.crt -nodes -subj '/CN=localhost'
+
+# Configure letsencrypt for a cert - this requires that your DNS settings are already done. 
 # Install epel repo
-sudo dnf install epel-release -y
+#sudo dnf install epel-release -y
 
 # Install certbot
-sudo dnf install certbot python3-certbot-apache -y
+#sudo dnf install certbot python3-certbot-apache -y
 
 # Retrieve and install the first cert.
-sudo certbot --apache --non-interactive --agree-tos -m $EMAIL --domain $FQDN
+#sudo certbot --apache --non-interactive --agree-tos -m $EMAIL --domain $FQDN
 
 #----------------------------------------------------# 
 #  Output
