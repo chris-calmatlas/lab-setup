@@ -7,7 +7,7 @@
 # Pre-req - Server needs internet access
 
 # variables
-SITENAME="test"
+SITENAME="technicallyrambling"
 FQDN="$SITENAME.calmatlas.com"
 # email address needed for letsencrypt, if you comment the last part of this
 # script, then you can also leave this variable blank
@@ -99,10 +99,10 @@ sudo dnf install httpd mod_ssl -y
 sudo systemctl enable --now httpd
 
 # Download the latest worpdress
-curl https://wordpress.org/latest.tar.gz --output wordpress.tar.gz
+curl https://wordpress.org/latest.tar.gz --output ~/wordpress.tar.gz
 
 # Extract the wordpress files to apache directory
-sudo tar -xf wordpress.tar.gz -C /var/www/html
+sudo tar -xf ~/wordpress.tar.gz -C /var/www/html
 sudo mv /var/www/html/wordpress /var/www/html/$SITENAME
 
 # give apapche ownership to wordpress
@@ -188,7 +188,7 @@ sudo sed -i'' 's/Options Indexes/Options/g' /etc/httpd/conf/httpd.conf
 # Give username and password
 echo ""
 echo "Navigate to your site in a browser and use the following information"
-echo "Database: $WP_DB
+echo "Database: $WP_DB"
 echo "Wordpress User: $WP_USER"
 echo "Password: $wp_db_user_pass"
 echo ""
