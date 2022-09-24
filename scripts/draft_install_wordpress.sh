@@ -17,6 +17,9 @@ WP_USER=wp_$SITENAME
 # First update packages
 sudo dnf update -y
 
+# Rocky 8 on Google Cloud did not come with semanage installed. semanage comes from the policyutils-python-utils package
+sudo dnf install policycoreutils-python-utils -y
+
 #-----------------------------------------------------# 
 # php
 #-----------------------------------------------------# 
@@ -95,12 +98,17 @@ curl https://wordpress.org/latest.tar.gz --output wordpress.tar.gz
 
 # Extract the wordpress files to apache directory
 sudo tar -xf wordpress.tar.gz -C /var/www/html
+sudo mv /var/www/html/wordpress /var/www/html/$SITENAME
 
 # give apapche ownership to wordpress
 sudo chown -R apache:apache /var/www/html/$SITENAME
 
 # set permissions to wordpress
 sudo chmod -R 775 /var/www/html/$SITENAME
+
+#selinux - give httpd rights to html folder
+sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html/$SITENAME(/.*)?"
+sudo restorecon -Rv /var/www/html/%SITENAME
 
 # Create an apache virtual host file to point to the wordpress install
 # We're writing it to the home directory of whoever ran the script first
@@ -128,8 +136,12 @@ cat > ~/$SITENAME.conf << EOF
 EOF
 
 # Move the file we just created and give it the appropriate permissions
-sudo chown root:root ./wordpress.conf
-sudo mv ./wordpress.conf /etc/httpd/conf.d/
+sudo chown root:root ~/$SITENAME.conf
+sudo mv ~/$SITENAME.conf /etc/httpd/conf.d/
+
+#selinux - label the conf file as a system file.
+sudo semanage fcontext -a -t httpd_config_t -s system_u /etc/httpd/conf.d/$SITENAME.conf
+sudo restorecon /etc/httpd/conf.d/$SITENAME.conf
 
 # reset apache
 sudo systemctl restart httpd
@@ -137,13 +149,6 @@ sudo systemctl restart httpd
 #----------------------------------------------------# 
 # Security
 #----------------------------------------------------# 
-# Rocky 8 on Google Cloud did not come with semanage installed. semanage comes from the policyutils-python-utils package
-sudo dnf install policycoreutils-python-utils -y
-
-# Configure SELinux context
-sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html/$SITENAME(/.*)?"
-sudo restorecon -Rv /var/www/html/$SITENAME
-sudo restorecon -Rv /etc/httpd/conf.d/
 
 # open firewall ports
 sudo firewall-cmd --permanent --add-service=http
