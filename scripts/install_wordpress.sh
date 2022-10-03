@@ -8,10 +8,11 @@
 
 # variables
 SITENAME="technicallyrambling"
-FQDN="$SITENAME.calmatlas.com"
+DOMAIN="calmatlas.com"
 # email address needed for letsencrypt, if you comment the last part of this
-# script, then you can also leave this variable blank
 EMAIL=chris@calmatlas.com
+
+FQDN="$SITENAME.$DOMAIN"
 WP_USER=wp_$SITENAME
 WP_DB=wp_$SITENAME
 
@@ -102,7 +103,7 @@ sudo systemctl enable --now httpd
 curl https://wordpress.org/latest.tar.gz --output ~/wordpress.tar.gz
 
 # Extract the wordpress files to apache directory
-sudo tar -xf ~/wordpress.tar.gz -C /var/www/html
+sudo tar -xzf ~/wordpress.tar.gz -C /var/www/html
 sudo mv /var/www/html/wordpress /var/www/html/$SITENAME
 
 # give apapche ownership to wordpress
