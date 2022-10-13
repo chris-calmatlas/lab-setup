@@ -162,6 +162,7 @@ sudo systemctl restart httpd
 # open firewall ports
 sudo firewall-cmd --permanent --add-service=http
 sudo firewall-cmd --permanent --add-service=https
+sudo systemctl restart firewalld
 
 # Additional selinux rules - files relabeled as needed above
 # Without this setting the plugin and theme page does not work
